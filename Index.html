@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Precificador de Blocos de Cimento</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; background: #f4f7f6; }
+        .card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h2, h3 { color: #333; margin-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
+        input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
+        button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 5px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        button:hover { background: #218838; }
+        .result { margin-top: 20px; padding: 20px; background: #e9ecef; border-radius: 5px; text-align: center; }
+        .price { font-size: 32px; font-weight: bold; color: #28a745; margin: 10px 0; }
+        .highlight { color: #007bff; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Calculadora - Bloco de Cimento</h2>
+        
+        <h3>1. Custos da Fornada (Por Lote)</h3>
+        <div class="form-group">
+            <label>Material (Cimento, Areia, Pó de Pedra) - R$</label>
+            <input type="number" id="material" placeholder="Ex: 150.00">
+        </div>
+        <div class="form-group">
+            <label>Ajudante / Mão de Obra da Fornada - R$</label>
+            <input type="number" id="maodeobra" placeholder="Ex: 100.00">
+        </div>
+        <div class="form-group">
+            <label>Quantos blocos rende essa fornada?</label>
+            <input type="number" id="rendimento" placeholder="Ex: 100">
+        </div>
+
+        <h3>2. Custos Fixos do Mês</h3>
+        <div class="form-group">
+            <label>Contas do Mês (Aluguel, Água, Energia) - R$</label>
+            <input type="number" id="fixos" placeholder="Ex: 1000.00">
+        </div>
+        <div class="form-group">
+            <label>Quantos blocos você produz por mês?</label>
+            <input type="number" id="producaomensal" placeholder="Ex: 2000">
+        </div>
+
+        <h3>3. Venda</h3>
+        <div class="form-group">
+            <label>Impostos (% sobre a venda)</label>
+            <input type="number" id="impostos" placeholder="Ex: 6" value="6">
+        </div>
+        <div class="form-group">
+            <label>Margem de Lucro Desejada (%)</label>
+            <input type="number" id="lucro" placeholder="Ex: 20" value="20">
+        </div>
+
+        <button onclick="calcular()">Calcular Preço de Venda</button>
+
+        <div class="result" id="resultado" style="display: none;">
+            <p>Custo Real para fazer 1 bloco: <span id="custoUnitario" class="highlight"></span></p>
+            <p>Por quanto você deve vender:</p>
+            <div class="price" id="precoVenda"></div>
+            <p>Lucro que vai pro seu bolso por bloco: <span id="lucroLiquido" class="highlight"></span></p>
+        </div>
+    </div>
+
+    <script>
+        function calcular() {
+            let material = parseFloat(document.getElementById('material').value) || 0;
+            let maodeobra = parseFloat(document.getElementById('maodeobra').value) || 0;
+            let rendimento = parseFloat(document.getElementById('rendimento').value) || 1;
+            
+            let fixos = parseFloat(document.getElementById('fixos').value) || 0;
+            let prodMensal = parseFloat(document.getElementById('producaomensal').value) || 1;
+            
+            let impostos = (parseFloat(document.getElementById('impostos').value) || 0) / 100;
+            let lucro = (parseFloat(document.getElementById('lucro').value) || 0) / 100;
+
+            // Custo Direto (Material + Ajudante rateado pelo rendimento)
+            let custoVariavel = (material + maodeobra) / rendimento;
+            
+            // Custo Fixo (Contas do mês rateadas pela produção total)
+            let custoFixoRateado = fixos / prodMensal;
+            
+            let custoTotal = custoVariavel + custoFixoRateado;
+
+            // Fórmula de Markup (Garante que a % seja sobre o valor de venda)
+            let divisor = 1 - (impostos + lucro);
+            if (divisor <= 0) {
+                alert("Erro matemático: A soma dos impostos e lucro precisa ser menor que 100%.");
+                return;
+            }
+            
+            let precoVenda = custoTotal / divisor;
+            let lucroReal = precoVenda * lucro;
+
+            document.getElementById('custoUnitario').innerText = `R$ ${custoTotal.toFixed(2).replace('.', ',')}`;
+            document.getElementById('precoVenda').innerText = `R$ ${precoVenda.toFixed(2).replace('.', ',')}`;
+            document.getElementById('lucroLiquido').innerText = `R$ ${lucroReal.toFixed(2).replace('.', ',')}`;
+            
+            document.getElementById('resultado').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
