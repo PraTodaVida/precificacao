@@ -3,28 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Precificador de Blocos de Cimento</title>
+    <title>Pra Toda Vida - Precificador de Blocos</title>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; background: #f4f7f6; }
-        .card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        h2, h3 { color: #333; margin-bottom: 10px; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        
+        /* Estilos da Logo */
+        .logo-container { text-align: center; margin-bottom: 20px; }
+        .logo-container img { max-width: 250px; height: auto; }
+        
+        h2 { color: #0056b3; margin-bottom: 20px; text-align: center; font-size: 24px;}
+        h3 { color: #333; margin-bottom: 10px; font-size: 18px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        
         .form-group { margin-bottom: 15px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
         input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
-        button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 5px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
-        button:hover { background: #218838; }
-        .result { margin-top: 20px; padding: 20px; background: #e9ecef; border-radius: 5px; text-align: center; }
-        .price { font-size: 32px; font-weight: bold; color: #28a745; margin: 10px 0; }
-        .highlight { color: #007bff; font-weight: bold; }
+        
+        button { width: 100%; padding: 12px; background: #0056b3; color: white; border: none; border-radius: 5px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        button:hover { background: #004494; }
+        
+        .result { margin-top: 20px; padding: 20px; background: #e9ecef; border-radius: 5px; text-align: center; border-left: 5px solid #0056b3; }
+        .price { font-size: 34px; font-weight: bold; color: #0056b3; margin: 10px 0; }
+        .highlight { color: #333; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>Calculadora - Bloco de Cimento</h2>
+        
+        <!-- SUA LOGO AQUI -->
+        <div class="logo-container">
+            <img src="PTV.png" alt="Logo Pra Toda Vida">
+        </div>
+
+        <h2>Calculadora de Precificação</h2>
         
         <h3>1. Custos da Fornada (Por Lote)</h3>
         <div class="form-group">
-            <label>Material (Cimento, Areia, Pó de Pedra) - R$</label>
+            <label>Material (Cimento, Areia, Pó) - R$</label>
             <input type="number" id="material" placeholder="Ex: 150.00">
         </div>
         <div class="form-group">
@@ -78,15 +93,10 @@
             let impostos = (parseFloat(document.getElementById('impostos').value) || 0) / 100;
             let lucro = (parseFloat(document.getElementById('lucro').value) || 0) / 100;
 
-            // Custo Direto (Material + Ajudante rateado pelo rendimento)
             let custoVariavel = (material + maodeobra) / rendimento;
-            
-            // Custo Fixo (Contas do mês rateadas pela produção total)
             let custoFixoRateado = fixos / prodMensal;
-            
             let custoTotal = custoVariavel + custoFixoRateado;
 
-            // Fórmula de Markup (Garante que a % seja sobre o valor de venda)
             let divisor = 1 - (impostos + lucro);
             if (divisor <= 0) {
                 alert("Erro matemático: A soma dos impostos e lucro precisa ser menor que 100%.");
