@@ -34,7 +34,7 @@
 
   /* topo */
   header{padding:14px 16px 10px;border-bottom:1px solid var(--linha);display:flex;align-items:center;gap:12px}
-  #logoImg{max-height:44px;max-width:150px;display:none}
+  #logoImg{max-height:44px;max-width:150px;display:none;mix-blend-mode:multiply}
   .marca{font-size:19px;font-weight:700;letter-spacing:-.2px}
   .marca small{display:block;font-size:12px;font-weight:500;color:var(--cinza);letter-spacing:0}
 
@@ -608,9 +608,9 @@
       img.style.display = "block";
       el("marcaTexto").style.display = "none";
     } else {
-      img.style.display = "none";
-      img.removeAttribute("src");
-      el("marcaTexto").style.display = "block";
+      img.src = "PTV_2.png";
+      img.style.display = "block";
+      el("marcaTexto").style.display = "none";
     }
   }
 
