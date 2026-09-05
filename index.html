@@ -1,117 +1,871 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pra Toda Vida - Precificador de Blocos</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; background: #f4f7f6; }
-        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        
-        /* Estilos da Logo */
-        .logo-container { text-align: center; margin-bottom: 20px; }
-        .logo-container img { max-width: 250px; height: auto; }
-        
-        h2 { color: #0056b3; margin-bottom: 20px; text-align: center; font-size: 24px;}
-        h3 { color: #333; margin-bottom: 10px; font-size: 18px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
-        input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
-        
-        button { width: 100%; padding: 12px; background: #0056b3; color: white; border: none; border-radius: 5px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
-        button:hover { background: #004494; }
-        
-        .result { margin-top: 20px; padding: 20px; background: #e9ecef; border-radius: 5px; text-align: center; border-left: 5px solid #0056b3; }
-        .price { font-size: 34px; font-weight: bold; color: #0056b3; margin: 10px 0; }
-        .highlight { color: #333; font-weight: bold; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pra Toda Vida — Precificador</title>
+<style>
+  :root{
+    --concreto:#E9E7E2;
+    --papel:#FFFFFF;
+    --linha:#CFCBC3;
+    --linha-forte:#A9A49A;
+    --grafite:#23262B;
+    --cinza:#5E626B;
+    --azul:#00509E;
+    --azul-escuro:#003B75;
+    --azul-claro:#E7EFF8;
+    --ambar:#9A5B00;
+    --ambar-fundo:#FBF0DC;
+    --verde:#1F6B3B;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    background:var(--concreto);
+    color:var(--grafite);
+    font-size:16px;
+    line-height:1.45;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:820px;margin:0 auto;background:var(--papel);min-height:100vh;
+    border-left:1px solid var(--linha);border-right:1px solid var(--linha)}
+
+  /* topo */
+  header{padding:14px 16px 10px;border-bottom:1px solid var(--linha);display:flex;align-items:center;gap:12px}
+  #logoImg{max-height:44px;max-width:150px;display:none}
+  .marca{font-size:19px;font-weight:700;letter-spacing:-.2px}
+  .marca small{display:block;font-size:12px;font-weight:500;color:var(--cinza);letter-spacing:0}
+
+  /* abas */
+  nav{display:flex;overflow-x:auto;border-bottom:1px solid var(--linha);background:var(--papel);
+    position:sticky;top:0;z-index:20;-webkit-overflow-scrolling:touch}
+  nav button{flex:0 0 auto;background:none;border:none;border-bottom:3px solid transparent;
+    padding:12px 14px;font-size:15px;font-family:inherit;color:var(--cinza);cursor:pointer;white-space:nowrap}
+  nav button[aria-selected="true"]{color:var(--azul);border-bottom-color:var(--azul);font-weight:600}
+  nav button:focus-visible{outline:2px solid var(--azul);outline-offset:-2px}
+
+  main{padding:16px}
+  section[hidden]{display:none}
+  h2{font-size:17px;margin:0 0 4px}
+  .ajuda{font-size:13px;color:var(--cinza);margin:0 0 14px}
+
+  /* painel de resultado */
+  .painel{position:sticky;top:47px;z-index:10;background:var(--azul-escuro);color:#fff;
+    border-radius:8px;padding:14px 16px;margin-bottom:16px}
+  .painel .rot{font-size:13px;opacity:.85}
+  .preco{font-size:40px;font-weight:700;line-height:1.1;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+  .painel .linha2{display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;font-size:13.5px;font-variant-numeric:tabular-nums}
+  .painel .linha2 b{font-weight:600}
+
+  /* campos */
+  .campo{margin-bottom:12px}
+  label{display:block;font-size:13.5px;color:var(--cinza);margin-bottom:4px}
+  input,select{width:100%;padding:9px 10px;border:1px solid var(--linha-forte);border-radius:5px;
+    font-size:16px;font-family:inherit;background:var(--papel);color:var(--grafite);font-variant-numeric:tabular-nums}
+  input:focus,select:focus{outline:2px solid var(--azul);outline-offset:-1px;border-color:var(--azul)}
+  .dupla{display:flex;gap:10px}
+  .dupla>*{flex:1}
+
+  /* tabela tipo planilha */
+  .planilha{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:10px}
+  .planilha th{background:var(--concreto);text-align:left;font-size:12.5px;color:var(--cinza);
+    font-weight:600;padding:7px 8px;border:1px solid var(--linha);white-space:nowrap}
+  .planilha td{border:1px solid var(--linha);padding:0}
+  .planilha td input,.planilha td select{border:none;border-radius:0;padding:9px 8px;font-size:15px;background:transparent}
+  .planilha td.calc{padding:9px 8px;text-align:right;color:var(--cinza);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .planilha td.meio{text-align:center}
+  .planilha tfoot td{background:var(--concreto);font-weight:600;padding:8px;text-align:right;font-variant-numeric:tabular-nums}
+  .rolagem{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:10px}
+  .rolagem .planilha{min-width:520px;margin-bottom:0}
+  .num{text-align:right}
+  .del{background:none;border:none;color:#A02020;font-size:19px;line-height:1;cursor:pointer;padding:6px 10px}
+
+  /* botoes */
+  .btn{display:inline-block;padding:11px 16px;border-radius:6px;border:1px solid var(--azul);
+    background:var(--azul);color:#fff;font-size:15px;font-family:inherit;font-weight:600;cursor:pointer}
+  .btn:hover{background:var(--azul-escuro)}
+  .btn.sec{background:transparent;color:var(--azul)}
+  .btn.sec:hover{background:var(--azul-claro)}
+  .btn.larga{width:100%}
+  .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  .btn:focus-visible{outline:3px solid var(--ambar);outline-offset:2px}
+
+  .aviso{background:var(--ambar-fundo);border-left:4px solid var(--ambar);color:var(--ambar);
+    padding:10px 12px;border-radius:0 5px 5px 0;font-size:13.5px;margin-bottom:14px}
+  .nota{font-size:13px;color:var(--cinza);margin-top:10px}
+  .quebra{border:none;border-top:1px solid var(--linha);margin:22px 0 16px}
+  .vazio{color:var(--cinza);font-size:14px;padding:10px 0}
+  .conferir{font-size:12.5px;color:var(--cinza);text-align:center;padding:18px 16px 28px;border-top:1px solid var(--linha)}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
 </head>
 <body>
-    <div class="card">
-        
-        <!-- SUA LOGO AQUI -->
-        <div class="logo-container">
-            <img src="PTV.png" alt="Logo Pra Toda Vida">
-        </div>
+<div class="wrap">
 
-        <h2>Calculadora de Precificação</h2>
-        
-        <h3>1. Custos da Fornada (Por Lote)</h3>
-        <div class="form-group">
-            <label>Material (Cimento, Areia, Pó) - R$</label>
-            <input type="number" id="material" placeholder="Ex: 150.00">
-        </div>
-        <div class="form-group">
-            <label>Ajudante / Mão de Obra da Fornada - R$</label>
-            <input type="number" id="maodeobra" placeholder="Ex: 100.00">
-        </div>
-        <div class="form-group">
-            <label>Quantos blocos rende essa fornada?</label>
-            <input type="number" id="rendimento" placeholder="Ex: 100">
-        </div>
+<header>
+  <img id="logoImg" alt="Pra Toda Vida">
+  <div class="marca" id="marcaTexto">Pra Toda Vida<small>Precificação de blocos</small></div>
+</header>
 
-        <h3>2. Custos Fixos do Mês</h3>
-        <div class="form-group">
-            <label>Contas do Mês (Aluguel, Água, Energia) - R$</label>
-            <input type="number" id="fixos" placeholder="Ex: 1000.00">
-        </div>
-        <div class="form-group">
-            <label>Quantos blocos você produz por mês?</label>
-            <input type="number" id="producaomensal" placeholder="Ex: 2000">
-        </div>
+<nav role="tablist">
+  <button role="tab" data-aba="calcular" aria-selected="true">Calcular</button>
+  <button role="tab" data-aba="insumos" aria-selected="false">Insumos</button>
+  <button role="tab" data-aba="equipe" aria-selected="false">Equipe</button>
+  <button role="tab" data-aba="fixos" aria-selected="false">Custos fixos</button>
+  <button role="tab" data-aba="venda" aria-selected="false">Venda</button>
+  <button role="tab" data-aba="dados" aria-selected="false">Dados</button>
+</nav>
 
-        <h3>3. Venda</h3>
-        <div class="form-group">
-            <label>Impostos (% sobre a venda)</label>
-            <input type="number" id="impostos" placeholder="Ex: 6" value="6">
-        </div>
-        <div class="form-group">
-            <label>Margem de Lucro Desejada (%)</label>
-            <input type="number" id="lucro" placeholder="Ex: 20" value="20">
-        </div>
+<main>
+  <div id="avisoStorage" class="aviso" hidden></div>
 
-        <button onclick="calcular()">Calcular Preço de Venda</button>
-
-        <div class="result" id="resultado" style="display: none;">
-            <p>Custo Real para fazer 1 bloco: <span id="custoUnitario" class="highlight"></span></p>
-            <p>Por quanto você deve vender:</p>
-            <div class="price" id="precoVenda"></div>
-            <p>Lucro que vai pro seu bolso por bloco: <span id="lucroLiquido" class="highlight"></span></p>
-        </div>
+  <!-- CALCULAR -->
+  <section id="aba-calcular">
+    <div class="painel">
+      <div class="rot">Preço de venda por bloco</div>
+      <div class="preco" id="rPreco">R$ 0,00</div>
+      <div class="linha2">
+        <span>Custo: <b id="rCusto">R$ 0,00</b></span>
+        <span>Lucro: <b id="rLucro">R$ 0,00</b></span>
+        <span>Fornada: <b id="rFornada">R$ 0,00</b></span>
+      </div>
     </div>
 
-    <script>
-        function calcular() {
-            let material = parseFloat(document.getElementById('material').value) || 0;
-            let maodeobra = parseFloat(document.getElementById('maodeobra').value) || 0;
-            let rendimento = parseFloat(document.getElementById('rendimento').value) || 1;
-            
-            let fixos = parseFloat(document.getElementById('fixos').value) || 0;
-            let prodMensal = parseFloat(document.getElementById('producaomensal').value) || 1;
-            
-            let impostos = (parseFloat(document.getElementById('impostos').value) || 0) / 100;
-            let lucro = (parseFloat(document.getElementById('lucro').value) || 0) / 100;
+    <div class="campo">
+      <label for="selProduto">Produto</label>
+      <select id="selProduto"></select>
+    </div>
 
-            let custoVariavel = (material + maodeobra) / rendimento;
-            let custoFixoRateado = fixos / prodMensal;
-            let custoTotal = custoVariavel + custoFixoRateado;
+    <h2>Quantidades da fornada</h2>
+    <p class="ajuda">Digite quanto de cada insumo entra em uma fornada. Os preços vêm da aba Insumos.</p>
+    <div class="rolagem">
+      <table class="planilha">
+        <thead><tr><th>Insumo</th><th>Unidade</th><th style="width:110px">Quantidade</th><th class="num">Custo</th></tr></thead>
+        <tbody id="tbCalc"></tbody>
+        <tfoot><tr><td colspan="3">Insumos da fornada</td><td id="totInsumos">R$ 0,00</td></tr></tfoot>
+      </table>
+    </div>
 
-            let divisor = 1 - (impostos + lucro);
-            if (divisor <= 0) {
-                alert("Erro matemático: A soma dos impostos e lucro precisa ser menor que 100%.");
-                return;
-            }
-            
-            let precoVenda = custoTotal / divisor;
-            let lucroReal = precoVenda * lucro;
+    <div class="dupla">
+      <div class="campo">
+        <label for="inRendimento">Blocos por fornada</label>
+        <input type="number" id="inRendimento" inputmode="numeric" min="1" placeholder="100">
+      </div>
+      <div class="campo">
+        <label for="inHoras">Horas de trabalho</label>
+        <input type="text" id="inHoras" inputmode="decimal" placeholder="4">
+      </div>
+    </div>
 
-            document.getElementById('custoUnitario').innerText = `R$ ${custoTotal.toFixed(2).replace('.', ',')}`;
-            document.getElementById('precoVenda').innerText = `R$ ${precoVenda.toFixed(2).replace('.', ',')}`;
-            document.getElementById('lucroLiquido').innerText = `R$ ${lucroReal.toFixed(2).replace('.', ',')}`;
-            
-            document.getElementById('resultado').style.display = 'block';
+    <div class="btns">
+      <button class="btn sec" id="btnSalvarProduto">Salvar como produto</button>
+      <button class="btn sec" id="btnExcluirProduto">Excluir produto</button>
+    </div>
+
+    <hr class="quebra">
+    <h2>Composição do custo por bloco</h2>
+    <table class="planilha">
+      <tbody id="tbComposicao"></tbody>
+      <tfoot><tr><td>Custo total por bloco</td><td id="compTotal" style="width:120px">R$ 0,00</td></tr></tfoot>
+    </table>
+    <p class="nota" id="notaRateio"></p>
+  </section>
+
+  <!-- INSUMOS -->
+  <section id="aba-insumos" hidden>
+    <h2>Insumos</h2>
+    <p class="ajuda">Cadastre o preço pela unidade que você usa na fornada. Se compra cimento em saco de 50 kg por R$ 42 e mede em kg, lance o preço por kg: 0,84.</p>
+    <div class="rolagem">
+      <table class="planilha">
+        <thead><tr><th style="min-width:150px">Insumo</th><th style="width:110px">Unidade</th><th style="width:120px" class="num">Preço unitário R$</th><th style="width:44px"></th></tr></thead>
+        <tbody id="tbInsumos"></tbody>
+      </table>
+    </div>
+    <button class="btn sec" data-add="insumos">Adicionar insumo</button>
+  </section>
+
+  <!-- EQUIPE -->
+  <section id="aba-equipe" hidden>
+    <h2>Equipe</h2>
+    <p class="ajuda">O custo por hora sai de salário + encargos dividido pelas horas trabalhadas no mês. Marque quem entra na fornada.</p>
+    <div class="rolagem">
+      <table class="planilha">
+        <thead><tr><th style="min-width:130px">Nome</th><th style="width:100px" class="num">Salário R$</th><th style="width:95px" class="num">Encargos %</th><th style="width:95px" class="num">Horas/mês</th><th style="width:95px" class="num">Custo/hora</th><th style="width:60px">Fornada</th><th style="width:44px"></th></tr></thead>
+        <tbody id="tbEquipe"></tbody>
+        <tfoot><tr><td colspan="4">Custo/hora da equipe da fornada</td><td id="totEquipe" colspan="3">R$ 0,00</td></tr></tfoot>
+      </table>
+    </div>
+    <button class="btn sec" data-add="equipe">Adicionar pessoa</button>
+    <p class="nota">Encargos incluem FGTS, férias, 13º, INSS patronal e o que mais você paga além do salário. Confira com seu contador antes de fechar preço.</p>
+  </section>
+
+  <!-- CUSTOS FIXOS -->
+  <section id="aba-fixos" hidden>
+    <h2>Contas do mês</h2>
+    <p class="ajuda">Tudo que você paga todo mês, produzindo ou não.</p>
+    <div class="rolagem">
+      <table class="planilha">
+        <thead><tr><th style="min-width:180px">Conta</th><th style="width:130px" class="num">Valor no mês R$</th><th style="width:44px"></th></tr></thead>
+        <tbody id="tbFixos"></tbody>
+        <tfoot><tr><td>Total de contas</td><td id="totFixos" colspan="2">R$ 0,00</td></tr></tfoot>
+      </table>
+    </div>
+    <button class="btn sec" data-add="fixos">Adicionar conta</button>
+
+    <hr class="quebra">
+    <h2>Máquinas</h2>
+    <p class="ajuda">A depreciação entra no rateio mensal. A energia entra na fornada, pelas horas de trabalho.</p>
+    <div class="rolagem">
+      <table class="planilha">
+        <thead><tr><th style="min-width:130px">Máquina</th><th style="width:105px" class="num">Valor R$</th><th style="width:95px" class="num">Vida (meses)</th><th style="width:90px" class="num">Potência kW</th><th style="width:105px" class="num">Deprec./mês</th><th style="width:60px">Fornada</th><th style="width:44px"></th></tr></thead>
+        <tbody id="tbMaquinas"></tbody>
+        <tfoot><tr><td colspan="4">Depreciação mensal</td><td id="totDeprec" colspan="3">R$ 0,00</td></tr></tfoot>
+      </table>
+    </div>
+    <button class="btn sec" data-add="maquinas">Adicionar máquina</button>
+
+    <hr class="quebra">
+    <div class="dupla">
+      <div class="campo">
+        <label for="inProdMensal">Blocos produzidos por mês</label>
+        <input type="number" id="inProdMensal" inputmode="numeric" min="1" placeholder="2000">
+      </div>
+      <div class="campo">
+        <label for="inKwh">Preço do kWh R$</label>
+        <input type="text" id="inKwh" inputmode="decimal" placeholder="0,95">
+      </div>
+    </div>
+    <div class="aviso">Se a produção mensal estiver alta demais, o rateio fica baixo e o preço sai abaixo do custo real. Use a produção que você realmente entrega, não a capacidade da máquina.</div>
+  </section>
+
+  <!-- VENDA -->
+  <section id="aba-venda" hidden>
+    <h2>Impostos, taxas e margem</h2>
+    <p class="ajuda">Tudo que incide sobre o preço final.</p>
+    <div class="dupla">
+      <div class="campo"><label for="inImpostos">Impostos %</label><input type="text" id="inImpostos" inputmode="decimal"></div>
+      <div class="campo"><label for="inCartao">Taxa de cartão / juros %</label><input type="text" id="inCartao" inputmode="decimal"></div>
+    </div>
+    <div class="campo">
+      <label for="inTipoMargem">Como calcular a margem</label>
+      <select id="inTipoMargem">
+        <option value="venda">Margem sobre o preço de venda</option>
+        <option value="custo">Markup sobre o custo</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label for="inMargem">Margem desejada %</label>
+      <input type="text" id="inMargem" inputmode="decimal">
+    </div>
+    <div class="aviso" id="explicaMargem"></div>
+    <div class="campo">
+      <label for="inFrete">Frete e entrega por bloco R$ (opcional)</label>
+      <input type="text" id="inFrete" inputmode="decimal">
+    </div>
+  </section>
+
+  <!-- DADOS -->
+  <section id="aba-dados" hidden>
+    <h2>Backup e logo</h2>
+    <p class="ajuda">Os dados ficam salvos só neste aparelho, neste navegador. Limpar dados do navegador apaga tudo. Faça backup.</p>
+    <div class="btns">
+      <button class="btn" id="btnBackup">Baixar backup</button>
+      <button class="btn sec" id="btnRestaurar">Restaurar backup</button>
+    </div>
+    <input type="file" id="fileBackup" accept="application/json" hidden>
+
+    <hr class="quebra">
+    <div class="campo">
+      <label for="fileLogo">Logo da empresa (fica salva no app)</label>
+      <input type="file" id="fileLogo" accept="image/*">
+    </div>
+    <button class="btn sec" id="btnRemoverLogo">Remover logo</button>
+
+    <hr class="quebra">
+    <button class="btn sec" id="btnZerar">Apagar todos os dados</button>
+    <p class="nota" id="statusSalvo"></p>
+  </section>
+</main>
+
+<p class="conferir">Os números saem do que você cadastrou. Confira o resultado antes de fechar preço com o cliente.</p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var CHAVE = "ptv_precificador_v1";
+  var memoria = null;      // fallback quando localStorage nao funciona
+  var temStorage = true;
+
+  var padrao = {
+    insumos: [
+      {id:"i1", nome:"Cimento", un:"kg", preco:0},
+      {id:"i2", nome:"Areia", un:"m³", preco:0},
+      {id:"i3", nome:"Pó de pedra", un:"m³", preco:0}
+    ],
+    equipe: [],
+    fixos: [
+      {id:"f1", nome:"Aluguel", valor:0},
+      {id:"f2", nome:"Energia", valor:0},
+      {id:"f3", nome:"Água", valor:0}
+    ],
+    maquinas: [],
+    produtos: [],
+    venda: {impostos:6, cartao:0, margem:20, tipoMargem:"venda", prodMensal:2000, kwh:0.95, frete:0},
+    atual: {produtoId:"", qtds:{}, rendimento:100, horas:4},
+    logo: ""
+  };
+
+  var d = null;
+
+  /* ---------- persistencia ---------- */
+  function carregar(){
+    var bruto = null;
+    try{ bruto = window.localStorage.getItem(CHAVE); }
+    catch(e){ temStorage = false; }
+    if(!temStorage){
+      var a = document.getElementById("avisoStorage");
+      a.textContent = "Este navegador não está salvando os dados. Baixe o arquivo e abra direto no seu aparelho para que os cadastros fiquem gravados.";
+      a.hidden = false;
+    }
+    if(bruto){
+      try{
+        var obj = JSON.parse(bruto);
+        d = mesclar(JSON.parse(JSON.stringify(padrao)), obj);
+        return;
+      }catch(e){}
+    }
+    d = JSON.parse(JSON.stringify(padrao));
+  }
+
+  function mesclar(base, novo){
+    for(var k in novo){
+      if(!Object.prototype.hasOwnProperty.call(novo,k)) continue;
+      if(novo[k] && typeof novo[k]==="object" && !Array.isArray(novo[k]) && base[k] && typeof base[k]==="object" && !Array.isArray(base[k])){
+        base[k] = mesclar(base[k], novo[k]);
+      } else {
+        base[k] = novo[k];
+      }
+    }
+    return base;
+  }
+
+  function salvar(){
+    if(temStorage){
+      try{ window.localStorage.setItem(CHAVE, JSON.stringify(d)); }
+      catch(e){ temStorage = false; }
+    }
+    if(!temStorage){ memoria = JSON.stringify(d); }
+    var s = document.getElementById("statusSalvo");
+    if(s) s.textContent = temStorage ? "Salvo neste aparelho." : "Sem gravação permanente neste navegador.";
+  }
+
+  /* ---------- utilidades ---------- */
+  function n(v){ var x = parseFloat(String(v).replace(",",".")); return isFinite(x) ? x : 0; }
+  function rs(v){
+    if(!isFinite(v)) v = 0;
+    return "R$ " + v.toFixed(2).replace(".",",").replace(/\B(?=(\d{3})+(?!\d))/g,".");
+  }
+  function novoId(){ return "x" + Date.now().toString(36) + Math.floor(Math.random()*1000).toString(36); }
+  function el(id){ return document.getElementById(id); }
+  function esc(t){ return String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+  /* ---------- calculo ---------- */
+  function calcular(){
+    var a = d.atual;
+    var custoInsumos = 0;
+    d.insumos.forEach(function(i){
+      custoInsumos += n(a.qtds[i.id]) * n(i.preco);
+    });
+
+    var horas = n(a.horas);
+    var rend = n(a.rendimento); if(rend <= 0) rend = 1;
+
+    var custoHoraEquipe = 0;
+    d.equipe.forEach(function(p){
+      if(!p.fornada) return;
+      var hm = n(p.horasMes); if(hm <= 0) return;
+      custoHoraEquipe += (n(p.salario) * (1 + n(p.encargos)/100)) / hm;
+    });
+    var custoMaoObra = custoHoraEquipe * horas;
+
+    var custoEnergia = 0, deprecMes = 0;
+    d.maquinas.forEach(function(m){
+      var vida = n(m.vida);
+      if(vida > 0) deprecMes += n(m.valor) / vida;
+      if(m.fornada) custoEnergia += n(m.kw) * n(d.venda.kwh) * horas;
+    });
+
+    var fixosMes = 0;
+    d.fixos.forEach(function(f){ fixosMes += n(f.valor); });
+    fixosMes += deprecMes;
+
+    var prodMensal = n(d.venda.prodMensal); if(prodMensal <= 0) prodMensal = 1;
+
+    var custoFornada = custoInsumos + custoMaoObra + custoEnergia;
+    var varUnit = custoFornada / rend;
+    var fixoUnit = fixosMes / prodMensal;
+    var freteUnit = n(d.venda.frete);
+    var custoTotal = varUnit + fixoUnit + freteUnit;
+
+    var imp = n(d.venda.impostos)/100;
+    var car = n(d.venda.cartao)/100;
+    var mar = n(d.venda.margem)/100;
+
+    var preco = 0, erro = "";
+    if(d.venda.tipoMargem === "custo"){
+      var div1 = 1 - (imp + car);
+      if(div1 <= 0){ erro = "Impostos mais taxa de cartão somam 100% ou mais. Corrija na aba Venda."; }
+      else { preco = (custoTotal * (1 + mar)) / div1; }
+    } else {
+      var div2 = 1 - (imp + car + mar);
+      if(div2 <= 0){ erro = "Impostos, taxa de cartão e margem somam 100% ou mais. Corrija na aba Venda."; }
+      else { preco = custoTotal / div2; }
+    }
+
+    var lucro = preco - custoTotal - preco*(imp+car);
+
+    return {
+      custoInsumos:custoInsumos, custoMaoObra:custoMaoObra, custoEnergia:custoEnergia,
+      custoHoraEquipe:custoHoraEquipe, deprecMes:deprecMes, fixosMes:fixosMes,
+      varUnit:varUnit, fixoUnit:fixoUnit, freteUnit:freteUnit,
+      custoFornada:custoFornada, custoTotal:custoTotal,
+      preco:preco, lucro:lucro, erro:erro, rend:rend, prodMensal:prodMensal
+    };
+  }
+
+  /* ---------- render: resultado ---------- */
+  function renderResultado(){
+    var r = calcular();
+    el("rPreco").textContent = r.erro ? "—" : rs(r.preco);
+    el("rCusto").textContent = rs(r.custoTotal);
+    el("rLucro").textContent = r.erro ? "—" : rs(r.lucro);
+    el("rFornada").textContent = rs(r.custoFornada);
+    el("totInsumos").textContent = rs(r.custoInsumos);
+
+    var linhas = [
+      ["Insumos", r.custoInsumos / r.rend],
+      ["Mão de obra", r.custoMaoObra / r.rend],
+      ["Energia das máquinas", r.custoEnergia / r.rend],
+      ["Rateio das contas do mês", r.fixoUnit],
+      ["Frete e entrega", r.freteUnit]
+    ];
+    var html = "";
+    linhas.forEach(function(l){
+      html += '<tr><td style="padding:8px">' + l[0] + '</td><td class="calc">' + rs(l[1]) + '</td></tr>';
+    });
+    el("tbComposicao").innerHTML = html;
+    el("compTotal").textContent = rs(r.custoTotal);
+
+    el("notaRateio").textContent = "Rateio: " + rs(r.fixosMes) + " de contas por mês (inclui " + rs(r.deprecMes) +
+      " de depreciação) divididos por " + r.prodMensal + " blocos.";
+
+    // custo por hora da equipe (aba equipe)
+    var te = el("totEquipe"); if(te) te.textContent = rs(r.custoHoraEquipe) + " por hora";
+    var tf = el("totFixos"); if(tf){ var s=0; d.fixos.forEach(function(f){s+=n(f.valor);}); tf.textContent = rs(s); }
+    var td = el("totDeprec"); if(td) td.textContent = rs(r.deprecMes);
+
+    var av = el("avisoStorage");
+    if(r.erro){ av.textContent = r.erro; av.hidden = false; }
+    else if(temStorage){ av.hidden = true; }
+  }
+
+  /* ---------- render: aba calcular ---------- */
+  function renderCalc(){
+    var tb = el("tbCalc");
+    if(!d.insumos.length){
+      tb.innerHTML = '<tr><td colspan="4" style="padding:12px" class="vazio">Nenhum insumo cadastrado. Vá na aba Insumos e cadastre.</td></tr>';
+    } else {
+      var html = "";
+      d.insumos.forEach(function(i){
+        var q = d.atual.qtds[i.id];
+        html += '<tr>' +
+          '<td style="padding:9px 8px">' + esc(i.nome) + '</td>' +
+          '<td style="padding:9px 8px;color:var(--cinza)">' + esc(i.un) + '</td>' +
+          '<td><input type="text" inputmode="decimal" class="num" data-qtd="' + i.id + '" value="' + (q==null?"":esc(q)) + '"></td>' +
+          '<td class="calc" data-custo="' + i.id + '">' + rs(n(q)*n(i.preco)) + '</td>' +
+        '</tr>';
+      });
+      tb.innerHTML = html;
+    }
+    el("inRendimento").value = d.atual.rendimento;
+    el("inHoras").value = d.atual.horas;
+    renderSelProduto();
+    renderResultado();
+  }
+
+  function renderSelProduto(){
+    var s = el("selProduto");
+    var html = '<option value="">Cálculo avulso</option>';
+    d.produtos.forEach(function(p){
+      html += '<option value="' + p.id + '">' + esc(p.nome) + '</option>';
+    });
+    s.innerHTML = html;
+    s.value = d.atual.produtoId || "";
+  }
+
+  /* ---------- render: cadastros ---------- */
+  function renderInsumos(){
+    var tb = el("tbInsumos");
+    if(!d.insumos.length){ tb.innerHTML = '<tr><td colspan="4" class="vazio" style="padding:12px">Nenhum insumo. Toque em adicionar.</td></tr>'; return; }
+    var html = "";
+    d.insumos.forEach(function(i){
+      html += '<tr>' +
+        '<td><input type="text" data-set="insumos.nome" data-id="' + i.id + '" value="' + esc(i.nome) + '"></td>' +
+        '<td><input type="text" data-set="insumos.un" data-id="' + i.id + '" value="' + esc(i.un) + '"></td>' +
+        '<td><input type="text" inputmode="decimal" class="num" data-set="insumos.preco" data-id="' + i.id + '" value="' + esc(i.preco) + '"></td>' +
+        '<td class="meio"><button class="del" data-del="insumos" data-id="' + i.id + '" aria-label="Excluir">×</button></td>' +
+      '</tr>';
+    });
+    tb.innerHTML = html;
+  }
+
+  function renderEquipe(){
+    var tb = el("tbEquipe");
+    if(!d.equipe.length){ tb.innerHTML = '<tr><td colspan="7" class="vazio" style="padding:12px">Nenhuma pessoa cadastrada.</td></tr>'; renderResultado(); return; }
+    var html = "";
+    d.equipe.forEach(function(p){
+      var hm = n(p.horasMes);
+      var ch = hm > 0 ? (n(p.salario)*(1+n(p.encargos)/100))/hm : 0;
+      html += '<tr>' +
+        '<td><input type="text" data-set="equipe.nome" data-id="' + p.id + '" value="' + esc(p.nome) + '"></td>' +
+        '<td><input type="text" inputmode="decimal" class="num" data-set="equipe.salario" data-id="' + p.id + '" value="' + esc(p.salario) + '"></td>' +
+        '<td><input type="text" inputmode="decimal" class="num" data-set="equipe.encargos" data-id="' + p.id + '" value="' + esc(p.encargos) + '"></td>' +
+        '<td><input type="text" inputmode="decimal" class="num" data-set="equipe.horasMes" data-id="' + p.id + '" value="' + esc(p.horasMes) + '"></td>' +
+        '<td class="calc" data-ch="' + p.id + '">' + rs(ch) + '</td>' +
+        '<td class="meio"><input type="checkbox" style="width:20px;height:20px" data-chk="equipe" data-id="' + p.id + '"' + (p.fornada?" checked":"") + '></td>' +
+        '<td class="meio"><button class="del" data-del="equipe" data-id="' + p.id + '" aria-label="Excluir">×</button></td>' +
+      '</tr>';
+    });
+    tb.innerHTML = html;
+    renderResultado();
+  }
+
+  function renderFixos(){
+    var tb = el("tbFixos");
+    if(!d.fixos.length){ tb.innerHTML = '<tr><td colspan="3" class="vazio" style="padding:12px">Nenhuma conta cadastrada.</td></tr>'; }
+    else{
+      var html = "";
+      d.fixos.forEach(function(f){
+        html += '<tr>' +
+          '<td><input type="text" data-set="fixos.nome" data-id="' + f.id + '" value="' + esc(f.nome) + '"></td>' +
+          '<td><input type="text" inputmode="decimal" class="num" data-set="fixos.valor" data-id="' + f.id + '" value="' + esc(f.valor) + '"></td>' +
+          '<td class="meio"><button class="del" data-del="fixos" data-id="' + f.id + '" aria-label="Excluir">×</button></td>' +
+        '</tr>';
+      });
+      tb.innerHTML = html;
+    }
+    renderMaquinas();
+  }
+
+  function renderMaquinas(){
+    var tb = el("tbMaquinas");
+    if(!d.maquinas.length){ tb.innerHTML = '<tr><td colspan="7" class="vazio" style="padding:12px">Nenhuma máquina cadastrada.</td></tr>'; renderResultado(); return; }
+    var html = "";
+    d.maquinas.forEach(function(m){
+      var vida = n(m.vida);
+      var dep = vida > 0 ? n(m.valor)/vida : 0;
+      html += '<tr>' +
+        '<td><input type="text" data-set="maquinas.nome" data-id="' + m.id + '" value="' + esc(m.nome) + '"></td>' +
+        '<td><input type="text" inputmode="decimal" class="num" data-set="maquinas.valor" data-id="' + m.id + '" value="' + esc(m.valor) + '"></td>' +
+        '<td><input type="number" inputmode="numeric" step="1" min="0" class="num" data-set="maquinas.vida" data-id="' + m.id + '" value="' + esc(m.vida) + '"></td>' +
+        '<td><input type="text" inputmode="decimal" class="num" data-set="maquinas.kw" data-id="' + m.id + '" value="' + esc(m.kw) + '"></td>' +
+        '<td class="calc" data-dep="' + m.id + '">' + rs(dep) + '</td>' +
+        '<td class="meio"><input type="checkbox" style="width:20px;height:20px" data-chk="maquinas" data-id="' + m.id + '"' + (m.fornada?" checked":"") + '></td>' +
+        '<td class="meio"><button class="del" data-del="maquinas" data-id="' + m.id + '" aria-label="Excluir">×</button></td>' +
+      '</tr>';
+    });
+    tb.innerHTML = html;
+    renderResultado();
+  }
+
+  function renderVenda(){
+    el("inImpostos").value = d.venda.impostos;
+    el("inCartao").value = d.venda.cartao;
+    el("inMargem").value = d.venda.margem;
+    el("inTipoMargem").value = d.venda.tipoMargem;
+    el("inFrete").value = d.venda.frete;
+    el("inProdMensal").value = d.venda.prodMensal;
+    el("inKwh").value = d.venda.kwh;
+    explicaMargem();
+  }
+
+  function explicaMargem(){
+    var m = n(d.venda.margem);
+    var txt = d.venda.tipoMargem === "custo"
+      ? "Markup sobre o custo: " + m + "% em cima do que o bloco custou. Impostos e taxa são somados depois."
+      : "Margem sobre a venda: " + m + "% do preço final fica com você, depois de impostos e taxa.";
+    el("explicaMargem").textContent = txt;
+  }
+
+  function renderLogo(){
+    var img = el("logoImg");
+    if(d.logo){
+      img.src = d.logo;
+      img.style.display = "block";
+      el("marcaTexto").style.display = "none";
+    } else {
+      img.style.display = "none";
+      img.removeAttribute("src");
+      el("marcaTexto").style.display = "block";
+    }
+  }
+
+  function renderTudo(){
+    renderInsumos(); renderEquipe(); renderFixos(); renderVenda(); renderLogo(); renderCalc();
+  }
+
+  /* ---------- eventos ---------- */
+  document.querySelector("nav").addEventListener("click", function(e){
+    var b = e.target.closest("button[data-aba]");
+    if(!b) return;
+    var abas = document.querySelectorAll("nav button[data-aba]");
+    for(var i=0;i<abas.length;i++){ abas[i].setAttribute("aria-selected", abas[i]===b ? "true":"false"); }
+    var secs = document.querySelectorAll("main section");
+    for(var j=0;j<secs.length;j++){ secs[j].hidden = true; }
+    el("aba-" + b.getAttribute("data-aba")).hidden = false;
+    if(b.getAttribute("data-aba") === "calcular") renderCalc();
+    window.scrollTo(0,0);
+  });
+
+  function achar(lista, id){
+    for(var i=0;i<lista.length;i++){ if(lista[i].id === id) return lista[i]; }
+    return null;
+  }
+
+  // edicao nos cadastros: atualiza sem redesenhar a linha (nao perde o foco)
+  document.addEventListener("input", function(e){
+    var t = e.target;
+
+    if(t.hasAttribute && t.hasAttribute("data-set")){
+      var partes = t.getAttribute("data-set").split(".");
+      var item = achar(d[partes[0]], t.getAttribute("data-id"));
+      if(item){
+        item[partes[1]] = t.value;
+        atualizarLinha(partes[0], item, t);
+        salvar(); renderResultado();
+      }
+      return;
+    }
+
+    if(t.hasAttribute && t.hasAttribute("data-qtd")){
+      var idq = t.getAttribute("data-qtd");
+      d.atual.qtds[idq] = t.value;
+      var ins = achar(d.insumos, idq);
+      var cel = document.querySelector('[data-custo="' + idq + '"]');
+      if(cel && ins) cel.textContent = rs(n(t.value) * n(ins.preco));
+      salvar(); renderResultado();
+      return;
+    }
+
+    switch(t.id){
+      case "inRendimento": d.atual.rendimento = n(t.value); salvar(); renderResultado(); break;
+      case "inHoras": d.atual.horas = n(t.value); salvar(); renderResultado(); break;
+      case "inImpostos": d.venda.impostos = n(t.value); salvar(); renderResultado(); break;
+      case "inCartao": d.venda.cartao = n(t.value); salvar(); renderResultado(); break;
+      case "inMargem": d.venda.margem = n(t.value); salvar(); explicaMargem(); renderResultado(); break;
+      case "inFrete": d.venda.frete = n(t.value); salvar(); renderResultado(); break;
+      case "inProdMensal": d.venda.prodMensal = n(t.value); salvar(); renderResultado(); break;
+      case "inKwh": d.venda.kwh = n(t.value); salvar(); renderResultado(); break;
+    }
+  });
+
+  function atualizarLinha(tipo, item, campo){
+    if(tipo === "equipe"){
+      var hm = n(item.horasMes);
+      var ch = hm > 0 ? (n(item.salario)*(1+n(item.encargos)/100))/hm : 0;
+      var c = document.querySelector('[data-ch="' + item.id + '"]');
+      if(c) c.textContent = rs(ch);
+    }
+    if(tipo === "maquinas"){
+      var vida = n(item.vida);
+      var dep = vida > 0 ? n(item.valor)/vida : 0;
+      var c2 = document.querySelector('[data-dep="' + item.id + '"]');
+      if(c2) c2.textContent = rs(dep);
+    }
+    if(tipo === "insumos" && campo && campo.getAttribute("data-set") === "insumos.preco"){
+      var cel = document.querySelector('[data-custo="' + item.id + '"]');
+      if(cel) cel.textContent = rs(n(d.atual.qtds[item.id]) * n(item.preco));
+    }
+  }
+
+  document.addEventListener("change", function(e){
+    var t = e.target;
+    if(t.hasAttribute && t.hasAttribute("data-chk")){
+      var lista = t.getAttribute("data-chk");
+      var item = achar(d[lista], t.getAttribute("data-id"));
+      if(item){ item.fornada = t.checked; salvar(); renderResultado(); }
+      return;
+    }
+    if(t.id === "inTipoMargem"){ d.venda.tipoMargem = t.value; salvar(); explicaMargem(); renderResultado(); return; }
+    if(t.id === "selProduto"){ carregarProduto(t.value); return; }
+  });
+
+  document.addEventListener("click", function(e){
+    var b = e.target.closest("button");
+    if(!b) return;
+
+    if(b.hasAttribute("data-add")){
+      var tipo = b.getAttribute("data-add");
+      if(tipo === "insumos") d.insumos.push({id:novoId(), nome:"", un:"kg", preco:0});
+      if(tipo === "equipe") d.equipe.push({id:novoId(), nome:"", salario:0, encargos:70, horasMes:220, fornada:true});
+      if(tipo === "fixos") d.fixos.push({id:novoId(), nome:"", valor:0});
+      if(tipo === "maquinas") d.maquinas.push({id:novoId(), nome:"", valor:0, vida:60, kw:0, fornada:true});
+      salvar();
+      if(tipo === "insumos"){ renderInsumos(); }
+      if(tipo === "equipe"){ renderEquipe(); }
+      if(tipo === "fixos"){ renderFixos(); }
+      if(tipo === "maquinas"){ renderMaquinas(); }
+      return;
+    }
+
+    if(b.hasAttribute("data-del")){
+      var lista = b.getAttribute("data-del");
+      var id = b.getAttribute("data-id");
+      var alvo = achar(d[lista], id);
+      var nome = alvo && alvo.nome ? alvo.nome : "este item";
+      if(!window.confirm("Excluir " + nome + "?")) return;
+      d[lista] = d[lista].filter(function(x){ return x.id !== id; });
+      if(lista === "insumos") delete d.atual.qtds[id];
+      salvar();
+      if(lista === "insumos") renderInsumos();
+      if(lista === "equipe") renderEquipe();
+      if(lista === "fixos") renderFixos();
+      if(lista === "maquinas") renderMaquinas();
+      renderResultado();
+      return;
+    }
+
+    switch(b.id){
+      case "btnSalvarProduto": salvarProduto(); break;
+      case "btnExcluirProduto": excluirProduto(); break;
+      case "btnBackup": baixarBackup(); break;
+      case "btnRestaurar": el("fileBackup").click(); break;
+      case "btnRemoverLogo": d.logo = ""; salvar(); renderLogo(); break;
+      case "btnZerar":
+        if(window.confirm("Apagar todos os cadastros e recomeçar do zero?")){
+          d = JSON.parse(JSON.stringify(padrao));
+          salvar(); renderTudo();
         }
-    </script>
+        break;
+    }
+  });
+
+  /* ---------- produtos ---------- */
+  function salvarProduto(){
+    var nomeAtual = "";
+    var p0 = achar(d.produtos, d.atual.produtoId);
+    if(p0) nomeAtual = p0.nome;
+    var nome = window.prompt("Nome do produto (ex.: Bloco 14x19x39):", nomeAtual);
+    if(nome === null) return;
+    nome = nome.trim();
+    if(!nome){ window.alert("Dê um nome ao produto."); return; }
+
+    var existente = null;
+    for(var i=0;i<d.produtos.length;i++){
+      if(d.produtos[i].nome.toLowerCase() === nome.toLowerCase()){ existente = d.produtos[i]; break; }
+    }
+    var dados = {
+      qtds: JSON.parse(JSON.stringify(d.atual.qtds)),
+      rendimento: d.atual.rendimento,
+      horas: d.atual.horas
+    };
+    if(existente){
+      if(!window.confirm("Já existe um produto com esse nome. Substituir?")) return;
+      existente.qtds = dados.qtds; existente.rendimento = dados.rendimento; existente.horas = dados.horas;
+      d.atual.produtoId = existente.id;
+    } else {
+      var novo = {id:novoId(), nome:nome, qtds:dados.qtds, rendimento:dados.rendimento, horas:dados.horas};
+      d.produtos.push(novo);
+      d.atual.produtoId = novo.id;
+    }
+    salvar(); renderSelProduto();
+    window.alert("Produto salvo.");
+  }
+
+  function carregarProduto(id){
+    d.atual.produtoId = id;
+    if(id){
+      var p = achar(d.produtos, id);
+      if(p){
+        d.atual.qtds = JSON.parse(JSON.stringify(p.qtds));
+        d.atual.rendimento = p.rendimento;
+        d.atual.horas = p.horas;
+      }
+    }
+    salvar(); renderCalc();
+  }
+
+  function excluirProduto(){
+    var id = d.atual.produtoId;
+    if(!id){ window.alert("Selecione um produto salvo para excluir."); return; }
+    var p = achar(d.produtos, id);
+    if(!p) return;
+    if(!window.confirm("Excluir o produto " + p.nome + "?")) return;
+    d.produtos = d.produtos.filter(function(x){ return x.id !== id; });
+    d.atual.produtoId = "";
+    salvar(); renderCalc();
+  }
+
+  /* ---------- backup e logo ---------- */
+  function baixarBackup(){
+    try{
+      var texto = JSON.stringify(d, null, 2);
+      var blob = new Blob([texto], {type:"application/json"});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      var hoje = new Date();
+      var carimbo = hoje.getFullYear() + "-" + String(hoje.getMonth()+1).padStart(2,"0") + "-" + String(hoje.getDate()).padStart(2,"0");
+      a.href = url;
+      a.download = "backup-precificador-" + carimbo + ".json";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+    }catch(e){
+      window.alert("Não foi possível gerar o backup neste navegador.");
+    }
+  }
+
+  el("fileBackup").addEventListener("change", function(e){
+    var f = e.target.files && e.target.files[0];
+    if(!f) return;
+    var leitor = new FileReader();
+    leitor.onload = function(){
+      try{
+        var obj = JSON.parse(leitor.result);
+        if(!obj || typeof obj !== "object" || !("insumos" in obj)){ throw new Error("formato"); }
+        if(!window.confirm("Restaurar este backup? Os dados atuais serão substituídos.")) return;
+        d = mesclar(JSON.parse(JSON.stringify(padrao)), obj);
+        salvar(); renderTudo();
+        window.alert("Backup restaurado.");
+      }catch(err){
+        window.alert("Arquivo inválido. Use um backup gerado por este app.");
+      }
+    };
+    leitor.readAsText(f);
+    e.target.value = "";
+  });
+
+  el("fileLogo").addEventListener("change", function(e){
+    var f = e.target.files && e.target.files[0];
+    if(!f) return;
+    if(f.size > 400000){ window.alert("Imagem muito grande. Use um arquivo de até 400 KB."); e.target.value=""; return; }
+    var leitor = new FileReader();
+    leitor.onload = function(){
+      d.logo = leitor.result;
+      salvar(); renderLogo();
+    };
+    leitor.readAsDataURL(f);
+    e.target.value = "";
+  });
+
+  /* ---------- inicio ---------- */
+  carregar();
+  renderTudo();
+  salvar();
+})();
+</script>
 </body>
 </html>
