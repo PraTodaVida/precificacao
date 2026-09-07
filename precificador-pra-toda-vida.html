@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pra Toda Vida — Precificador</title>
+<style>
+  :root{
+    --concreto:#E9E7E2; --papel:#FFF; --linha:#CFCBC3; --linha-forte:#A9A49A;
+    --grafite:#23262B; --cinza:#5E626B; --azul:#00509E; --azul-escuro:#003B75;
+    --azul-claro:#E7EFF8; --ambar:#8A4B00; --ambar-fundo:#FBF0DC; --vermelho:#9B1C1C;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--concreto);
+    color:var(--grafite);font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%}
+  .wrap{max-width:820px;margin:0 auto;background:var(--papel);min-height:100vh;border-left:1px solid var(--linha);border-right:1px solid var(--linha)}
+
+  header{padding:12px 16px;border-bottom:1px solid var(--linha);display:flex;align-items:center;gap:12px}
+  #logoImg{max-height:46px;max-width:160px;display:none}
+  .marca{display:flex;align-items:center;gap:10px}
+  .marca svg{flex:0 0 auto;width:52px;height:30px}
+  .marca .nome{font-size:16px;font-weight:800;color:var(--azul);letter-spacing:1.6px;line-height:1.1}
+  .marca small{display:block;font-size:11.5px;font-weight:500;color:var(--cinza);margin-top:2px}
+
+  nav{display:flex;overflow-x:auto;border-bottom:1px solid var(--linha);background:var(--papel);position:sticky;top:0;z-index:20;-webkit-overflow-scrolling:touch}
+  nav button{flex:0 0 auto;background:none;border:none;border-bottom:3px solid transparent;padding:12px 14px;
+    font-size:15px;font-family:inherit;color:var(--cinza);cursor:pointer;white-space:nowrap}
+  nav button[aria-selected="true"]{color:var(--azul);border-bottom-color:var(--azul);font-weight:600}
+  nav button:focus-visible{outline:2px solid var(--azul);outline-offset:-2px}
+
+  main{padding:16px}
+  section[hidden]{display:none}
+  h2{font-size:17px;margin:0 0 4px}
+  h2.sep{margin-top:26px}
+  .ajuda{font-size:13px;color:var(--cinza);margin:0 0 14px}
+
+  .painel{position:sticky;top:47px;z-index:10;background:var(--azul-escuro);color:#fff;border-radius:8px;padding:14px 16px;margin-bottom:16px}
+  .painel .rot{font-size:13px;opacity:.85}
+  .preco{font-size:40px;font-weight:700;line-height:1.1;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+  .painel .linha2{display:flex;gap:16px;flex-wrap:wrap;margin-top:6px;font-size:13.5px;font-variant-numeric:tabular-nums}
+  .painel b{font-weight:600}
+
+  .campo{margin-bottom:12px}
+  label{display:block;font-size:13px;color:var(--cinza);margin-bottom:4px}
+  input[type=text],input[type=number],select{width:100%;padding:9px 10px;border:1px solid var(--linha-forte);
+    border-radius:5px;font-size:16px;font-family:inherit;background:var(--papel);color:var(--grafite);font-variant-numeric:tabular-nums}
+  input:focus,select:focus{outline:2px solid var(--azul);outline-offset:-1px;border-color:var(--azul)}
+  .dupla{display:flex;gap:10px}
+  .dupla>*{flex:1}
+  .num{text-align:right}
+
+  /* ficha de cadastro (substitui a tabela larga) */
+  .ficha{border:1px solid var(--linha);border-radius:7px;padding:12px;margin-bottom:12px}
+  .ficha.falta{border-color:var(--ambar);background:#FFFDF7}
+  .ficha-topo{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+  .ficha-topo input{font-weight:600;font-size:16px}
+  .grade{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .grade .largo{grid-column:1 / -1}
+  .ficha-rodape{margin-top:10px;padding-top:9px;border-top:1px dashed var(--linha);font-size:13px;
+    color:var(--cinza);font-variant-numeric:tabular-nums;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .ficha-rodape b{color:var(--grafite)}
+  .pend{color:var(--ambar);font-weight:600}
+  .marcar{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--grafite)}
+  .marcar input{width:20px;height:20px;flex:0 0 auto}
+
+  .planilha{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:10px;table-layout:fixed}
+  .planilha th{background:var(--concreto);text-align:left;font-size:12px;color:var(--cinza);font-weight:600;padding:7px 6px;border:1px solid var(--linha)}
+  .planilha td{border:1px solid var(--linha);padding:0}
+  .planilha td input{border:none;border-radius:0;padding:9px 6px;font-size:15px;background:transparent}
+  .planilha td.txt{padding:8px 6px}
+  .planilha td.calc{padding:8px 6px;text-align:right;color:var(--cinza);font-variant-numeric:tabular-nums}
+  .planilha td.meio{text-align:center}
+  .planilha tfoot td{background:var(--concreto);font-weight:600;padding:8px 6px;text-align:right;font-variant-numeric:tabular-nums}
+  .med{font-size:12px;color:var(--cinza);display:block}
+  .del{background:none;border:none;color:var(--vermelho);font-size:20px;line-height:1;cursor:pointer;padding:4px 8px;flex:0 0 auto}
+
+  .btn{display:inline-block;padding:11px 16px;border-radius:6px;border:1px solid var(--azul);background:var(--azul);
+    color:#fff;font-size:15px;font-family:inherit;font-weight:600;cursor:pointer}
+  .btn:hover{background:var(--azul-escuro)}
+  .btn.sec{background:transparent;color:var(--azul)}
+  .btn.sec:hover{background:var(--azul-claro)}
+  .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  .btn:focus-visible{outline:3px solid var(--ambar);outline-offset:2px}
+
+  .aviso{background:var(--ambar-fundo);border-left:4px solid var(--ambar);color:var(--ambar);padding:10px 12px;
+    border-radius:0 5px 5px 0;font-size:13.5px;margin-bottom:14px}
+  .nota{font-size:13px;color:var(--cinza);margin-top:10px}
+  .quebra{border:none;border-top:1px solid var(--linha);margin:24px 0 16px}
+  .vazio{color:var(--cinza);font-size:14px;padding:10px 0}
+  .conferir{font-size:12.5px;color:var(--cinza);text-align:center;padding:18px 16px 28px;border-top:1px solid var(--linha)}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <img id="logoImg" alt="Pra Toda Vida">
+  <div class="marca" id="marcaTexto">
+    <svg viewBox="0 0 120 70" role="img" aria-label="Pra Toda Vida">
+      <defs>
+        <linearGradient id="volFita" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#4A4F57"/><stop offset="0.45" stop-color="#15181C"/><stop offset="1" stop-color="#000"/>
+        </linearGradient>
+        <linearGradient id="brilhoFita" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#FFF" stop-opacity="0.55"/><stop offset="0.5" stop-color="#FFF" stop-opacity="0.05"/><stop offset="1" stop-color="#FFF" stop-opacity="0.35"/>
+        </linearGradient>
+      </defs>
+      <g fill="none" stroke-linecap="round">
+        <path d="M16 35 C16 12, 52 12, 60 35 C68 58, 104 58, 104 35 C104 12, 68 12, 60 35 C52 58, 16 58, 16 35 Z" stroke="#000" stroke-opacity="0.18" stroke-width="17" transform="translate(0,3)"/>
+        <path d="M16 35 C16 12, 52 12, 60 35 C68 58, 104 58, 104 35 C104 12, 68 12, 60 35 C52 58, 16 58, 16 35 Z" stroke="url(#volFita)" stroke-width="15"/>
+        <path d="M16 35 C16 12, 52 12, 60 35 C68 58, 104 58, 104 35 C104 12, 68 12, 60 35 C52 58, 16 58, 16 35 Z" stroke="url(#brilhoFita)" stroke-width="4.5" transform="translate(0,-3.2)"/>
+      </g>
+    </svg>
+    <div><div class="nome">PRA TODA VIDA</div><small>Precificação de blocos</small></div>
+  </div>
+</header>
+
+<nav role="tablist">
+  <button role="tab" data-aba="calcular" aria-selected="true">Calcular</button>
+  <button role="tab" data-aba="insumos" aria-selected="false">Insumos</button>
+  <button role="tab" data-aba="equipe" aria-selected="false">Equipe</button>
+  <button role="tab" data-aba="fixos" aria-selected="false">Custos fixos</button>
+  <button role="tab" data-aba="venda" aria-selected="false">Venda</button>
+  <button role="tab" data-aba="dados" aria-selected="false">Dados</button>
+</nav>
+
+<main>
+  <div id="avisoTopo" class="aviso" hidden></div>
+
+  <!-- CALCULAR -->
+  <section id="aba-calcular">
+    <div class="painel">
+      <div class="rot">Preço de venda por bloco</div>
+      <div class="preco" id="rPreco">R$ 0,00</div>
+      <div class="linha2">
+        <span>Custo: <b id="rCusto">R$ 0,00</b></span>
+        <span>Lucro: <b id="rLucro">R$ 0,00</b></span>
+      </div>
+      <div class="linha2">
+        <span>Fornada: <b id="rFornada">R$ 0,00</b></span>
+        <span>Blocos bons: <b id="rBons">0</b></span>
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="selProduto">Produto</label>
+      <select id="selProduto"></select>
+    </div>
+
+    <h2>Traço da fornada</h2>
+    <p class="ajuda">Digite quantas medidas de cada insumo entram em uma fornada. Preços e conversões vêm da aba Insumos.</p>
+    <table class="planilha">
+      <colgroup><col><col style="width:76px"><col style="width:86px"></colgroup>
+      <thead><tr><th>Insumo / medida</th><th>Qtd</th><th class="num" style="text-align:right">Custo</th></tr></thead>
+      <tbody id="tbCalc"></tbody>
+      <tfoot><tr><td colspan="2">Insumos da fornada</td><td id="totInsumos">R$ 0,00</td></tr></tfoot>
+    </table>
+
+    <div class="dupla">
+      <div class="campo"><label for="inRendimento">Blocos desmoldados</label><input type="number" id="inRendimento" inputmode="numeric" min="1"></div>
+      <div class="campo"><label for="inPerda">Perda / refugo %</label><input type="text" id="inPerda" inputmode="decimal"></div>
+    </div>
+    <div class="campo"><label for="inHoras">Horas de trabalho na fornada</label><input type="text" id="inHoras" inputmode="decimal"></div>
+
+    <div class="btns">
+      <button class="btn sec" id="btnSalvarProduto">Salvar como produto</button>
+      <button class="btn sec" id="btnExcluirProduto">Excluir produto</button>
+    </div>
+
+    <hr class="quebra">
+    <h2>Custo por bloco bom</h2>
+    <table class="planilha">
+      <colgroup><col><col style="width:110px"></colgroup>
+      <tbody id="tbComposicao"></tbody>
+      <tfoot><tr><td>Custo total</td><td id="compTotal">R$ 0,00</td></tr></tfoot>
+    </table>
+    <p class="nota" id="notaRateio"></p>
+    <p class="nota" id="notaTraco"></p>
+  </section>
+
+  <!-- INSUMOS -->
+  <section id="aba-insumos" hidden>
+    <h2>Insumos</h2>
+    <p class="ajuda">Cadastre como você <b>compra</b> e como você <b>mede na fornada</b>. O app faz a conversão. Exemplo: compra saco de cimento de 50 kg por R$ 42 e dosa por saco — a medida também pesa 50 kg. Pó de brita comprado em m³ e dosado em lata de 28 kg: informe quantos kg vêm no m³.</p>
+    <div id="lstInsumos"></div>
+    <button class="btn sec" data-add="insumos">Adicionar insumo</button>
+    <p class="nota">Para itens sem peso (litro de aditivo, por exemplo), coloque 1 nos dois campos de kg e lance o preço por litro.</p>
+  </section>
+
+  <!-- EQUIPE -->
+  <section id="aba-equipe" hidden>
+    <h2>Equipe</h2>
+    <p class="ajuda">O custo por hora sai de salário mais encargos dividido pelas horas do mês. Marque quem trabalha na fornada.</p>
+    <div id="lstEquipe"></div>
+    <button class="btn sec" data-add="equipe">Adicionar pessoa</button>
+    <p class="nota" id="notaEquipe"></p>
+  </section>
+
+  <!-- FIXOS -->
+  <section id="aba-fixos" hidden>
+    <h2>Contas do mês</h2>
+    <p class="ajuda">Tudo que você paga todo mês, produzindo ou não.</p>
+    <table class="planilha">
+      <colgroup><col><col style="width:110px"><col style="width:44px"></colgroup>
+      <thead><tr><th>Conta</th><th class="num" style="text-align:right">R$ no mês</th><th></th></tr></thead>
+      <tbody id="tbFixos"></tbody>
+      <tfoot><tr><td>Total</td><td id="totFixos" colspan="2">R$ 0,00</td></tr></tfoot>
+    </table>
+    <button class="btn sec" data-add="fixos">Adicionar conta</button>
+
+    <h2 class="sep">Máquinas</h2>
+    <p class="ajuda">A depreciação entra no rateio do mês. A energia entra na fornada, pelas horas de trabalho.</p>
+    <div id="lstMaquinas"></div>
+    <button class="btn sec" data-add="maquinas">Adicionar máquina</button>
+
+    <hr class="quebra">
+    <div class="dupla">
+      <div class="campo"><label for="inProdMensal">Blocos vendidos por mês</label><input type="number" id="inProdMensal" inputmode="numeric" min="1"></div>
+      <div class="campo"><label for="inKwh">Preço do kWh R$</label><input type="text" id="inKwh" inputmode="decimal"></div>
+    </div>
+    <div class="aviso">Use a produção que você realmente vende. Se lançar a capacidade da máquina, o rateio fica menor que o real e o preço sai abaixo do custo.</div>
+  </section>
+
+  <!-- VENDA -->
+  <section id="aba-venda" hidden>
+    <h2>Impostos, taxas e margem</h2>
+    <div class="dupla">
+      <div class="campo"><label for="inImpostos">Impostos %</label><input type="text" id="inImpostos" inputmode="decimal"></div>
+      <div class="campo"><label for="inCartao">Cartão / juros %</label><input type="text" id="inCartao" inputmode="decimal"></div>
+    </div>
+    <div class="campo">
+      <label for="inTipoMargem">Como calcular a margem</label>
+      <select id="inTipoMargem">
+        <option value="venda">Margem sobre o preço de venda</option>
+        <option value="custo">Markup sobre o custo</option>
+      </select>
+    </div>
+    <div class="campo"><label for="inMargem">Margem desejada %</label><input type="text" id="inMargem" inputmode="decimal"></div>
+    <div class="aviso" id="explicaMargem"></div>
+    <div class="campo"><label for="inFrete">Frete e entrega por bloco R$ (opcional)</label><input type="text" id="inFrete" inputmode="decimal"></div>
+  </section>
+
+  <!-- DADOS -->
+  <section id="aba-dados" hidden>
+    <h2>Backup e logo</h2>
+    <p class="ajuda">Os dados ficam só neste aparelho, neste navegador. Limpar os dados do navegador apaga tudo.</p>
+    <div class="btns">
+      <button class="btn" id="btnBackup">Baixar backup</button>
+      <button class="btn sec" id="btnRestaurar">Restaurar backup</button>
+    </div>
+    <input type="file" id="fileBackup" accept="application/json" hidden>
+    <hr class="quebra">
+    <div class="campo"><label for="fileLogo">Logo da empresa (fica salva no app)</label><input type="file" id="fileLogo" accept="image/*"></div>
+    <button class="btn sec" id="btnRemoverLogo">Remover logo</button>
+    <hr class="quebra">
+    <button class="btn sec" id="btnZerar">Apagar todos os dados</button>
+    <p class="nota" id="statusSalvo"></p>
+  </section>
+</main>
+
+<p class="conferir">Os números saem do que você cadastrou. Confira antes de fechar preço com o cliente.</p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var CHAVE = "ptv_precificador_v3";
+  var CHAVE_ANTIGA = "ptv_precificador_v2";
+  var temStorage = true;
+
+  var padrao = {
+    insumos: [
+      {id:"cim", nome:"Cimento",     unCompra:"saco 50 kg",   precoCompra:50,   kgCompra:50,    unDose:"saco", kgDose:50},
+      {id:"pob", nome:"Pó de brita", unCompra:"caçamba 13 t", precoCompra:1800, kgCompra:13000, unDose:"lata", kgDose:28},
+      {id:"are", nome:"Areia",       unCompra:"caçamba 13 t", precoCompra:1450, kgCompra:13000, unDose:"lata", kgDose:30}
+    ],
+    equipe: [],
+    fixos: [{id:"f1",nome:"Aluguel",valor:0},{id:"f2",nome:"Energia",valor:0},{id:"f3",nome:"Água",valor:0}],
+    maquinas: [],
+    produtos: [{id:"p1", nome:"Bloco 14x19x39", qtds:{cim:1, pob:28, are:8}, rendimento:60, horas:0, perda:0}],
+    venda: {impostos:6, cartao:0, margem:20, tipoMargem:"venda", prodMensal:0, kwh:0, frete:0},
+    atual: {produtoId:"p1", qtds:{cim:1, pob:28, are:8}, rendimento:60, horas:0, perda:0},
+    logo: ""
+  };
+
+  var d = null;
+
+  /* ---------- persistencia ---------- */
+  function carregar(){
+    var bruto = null, antigo = null;
+    try{
+      bruto = window.localStorage.getItem(CHAVE);
+      antigo = window.localStorage.getItem(CHAVE_ANTIGA);
+    }catch(e){ temStorage = false; }
+
+    d = JSON.parse(JSON.stringify(padrao));
+
+    if(bruto){
+      try{ d = mesclar(d, JSON.parse(bruto)); return; }catch(e){}
+    }
+    if(antigo){
+      // traz o que ainda serve da versao anterior; insumos e produtos comecam limpos
+      try{
+        var a = JSON.parse(antigo);
+        if(Array.isArray(a.equipe)) d.equipe = a.equipe;
+        if(Array.isArray(a.fixos) && a.fixos.length) d.fixos = a.fixos;
+        if(Array.isArray(a.maquinas)) d.maquinas = a.maquinas;
+        if(a.venda) d.venda = mesclar(d.venda, a.venda);
+        if(a.logo) d.logo = a.logo;
+      }catch(e){}
+    }
+  }
+
+  function mesclar(base, novo){
+    for(var k in novo){
+      if(!Object.prototype.hasOwnProperty.call(novo,k)) continue;
+      if(novo[k] && typeof novo[k]==="object" && !Array.isArray(novo[k]) && base[k] && typeof base[k]==="object" && !Array.isArray(base[k])){
+        base[k] = mesclar(base[k], novo[k]);
+      } else { base[k] = novo[k]; }
+    }
+    return base;
+  }
+
+  function salvar(){
+    if(temStorage){
+      try{ window.localStorage.setItem(CHAVE, JSON.stringify(d)); }
+      catch(e){ temStorage = false; }
+    }
+    var s = el("statusSalvo");
+    if(s) s.textContent = temStorage ? "Salvo neste aparelho." : "Este navegador não está gravando os dados.";
+  }
+
+  /* ---------- utilidades ---------- */
+  function n(v){ var x = parseFloat(String(v==null?"":v).replace(",",".")); return isFinite(x) ? x : 0; }
+  function rs(v){
+    if(!isFinite(v)) v = 0;
+    var neg = v < 0; v = Math.abs(v);
+    var t = v.toFixed(2).replace(".",",").replace(/\B(?=(\d{3})+(?!\d))/g,".");
+    return (neg?"-R$ ":"R$ ") + t;
+  }
+  function num(v, casas){
+    if(!isFinite(v)) v = 0;
+    return v.toFixed(casas==null?2:casas).replace(".",",");
+  }
+  function novoId(){ return "x" + Date.now().toString(36) + Math.floor(Math.random()*1000).toString(36); }
+  function el(id){ return document.getElementById(id); }
+  function esc(t){ return String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function achar(lista,id){ for(var i=0;i<lista.length;i++){ if(lista[i].id===id) return lista[i]; } return null; }
+
+  // preco por kg e por medida de dosagem
+  function precoKg(i){
+    var kg = n(i.kgCompra);
+    return kg > 0 ? n(i.precoCompra)/kg : 0;
+  }
+  function precoDose(i){ return precoKg(i) * n(i.kgDose); }
+  function insumoIncompleto(i){ return n(i.precoCompra) <= 0 || n(i.kgCompra) <= 0 || n(i.kgDose) <= 0; }
+
+  /* ---------- calculo ---------- */
+  function calcular(){
+    var a = d.atual;
+    var custoInsumos = 0, kgCimento = 0, kgAgregado = 0, faltando = 0;
+
+    d.insumos.forEach(function(i){
+      var q = n(a.qtds[i.id]);
+      if(q > 0 && insumoIncompleto(i)) faltando++;
+      custoInsumos += q * precoDose(i);
+      var kg = q * n(i.kgDose);
+      if(/ciment/i.test(i.nome)) kgCimento += kg; else kgAgregado += kg;
+    });
+
+    var horas = n(a.horas);
+    var rend = n(a.rendimento); if(rend <= 0) rend = 1;
+    var perda = n(a.perda); if(perda < 0) perda = 0; if(perda > 99) perda = 99;
+    var bons = rend * (1 - perda/100); if(bons <= 0) bons = 1;
+
+    var custoHoraEquipe = 0;
+    d.equipe.forEach(function(p){
+      if(!p.fornada) return;
+      var hm = n(p.horasMes); if(hm <= 0) return;
+      custoHoraEquipe += (n(p.salario) * (1 + n(p.encargos)/100)) / hm;
+    });
+    var custoMaoObra = custoHoraEquipe * horas;
+
+    var custoEnergia = 0, deprecMes = 0;
+    d.maquinas.forEach(function(m){
+      var vida = n(m.vida);
+      if(vida > 0) deprecMes += n(m.valor)/vida;
+      if(m.fornada) custoEnergia += n(m.kw) * n(d.venda.kwh) * horas;
+    });
+
+    var fixosMes = 0;
+    d.fixos.forEach(function(f){ fixosMes += n(f.valor); });
+    fixosMes += deprecMes;
+
+    var prodMensal = n(d.venda.prodMensal);
+    var semProdMensal = prodMensal <= 0;
+    if(semProdMensal) prodMensal = 1;
+
+    var custoFornada = custoInsumos + custoMaoObra + custoEnergia;
+    var varUnit = custoFornada / bons;
+    var fixoUnit = semProdMensal ? 0 : fixosMes / prodMensal;
+    var freteUnit = n(d.venda.frete);
+    var custoTotal = varUnit + fixoUnit + freteUnit;
+
+    var imp = n(d.venda.impostos)/100, car = n(d.venda.cartao)/100, mar = n(d.venda.margem)/100;
+    var preco = 0, erro = "";
+    if(d.venda.tipoMargem === "custo"){
+      var v1 = 1 - (imp + car);
+      if(v1 <= 0) erro = "Impostos mais cartão somam 100% ou mais. Corrija na aba Venda.";
+      else preco = (custoTotal * (1 + mar)) / v1;
+    } else {
+      var v2 = 1 - (imp + car + mar);
+      if(v2 <= 0) erro = "Impostos, cartão e margem somam 100% ou mais. Corrija na aba Venda.";
+      else preco = custoTotal / v2;
+    }
+    var lucro = preco - custoTotal - preco*(imp+car);
+
+    return {custoInsumos:custoInsumos, custoMaoObra:custoMaoObra, custoEnergia:custoEnergia,
+      custoHoraEquipe:custoHoraEquipe, deprecMes:deprecMes, fixosMes:fixosMes,
+      varUnit:varUnit, fixoUnit:fixoUnit, freteUnit:freteUnit, custoFornada:custoFornada,
+      custoTotal:custoTotal, preco:preco, lucro:lucro, erro:erro, bons:bons, rend:rend,
+      prodMensal:prodMensal, semProdMensal:semProdMensal, faltando:faltando,
+      kgCimento:kgCimento, kgAgregado:kgAgregado};
+  }
+
+  /* ---------- render resultado ---------- */
+  function renderResultado(){
+    var r = calcular();
+    var semPreco = r.erro || r.custoTotal <= 0;
+    el("rPreco").textContent = semPreco ? "—" : rs(r.preco);
+    el("rCusto").textContent = rs(r.custoTotal);
+    el("rLucro").textContent = semPreco ? "—" : rs(r.lucro);
+    el("rFornada").textContent = rs(r.custoFornada);
+    el("rBons").textContent = num(r.bons, r.bons % 1 === 0 ? 0 : 1);
+    el("totInsumos").textContent = rs(r.custoInsumos);
+
+    var linhas = [
+      ["Insumos", r.custoInsumos / r.bons],
+      ["Mão de obra", r.custoMaoObra / r.bons],
+      ["Energia das máquinas", r.custoEnergia / r.bons],
+      ["Rateio das contas do mês", r.fixoUnit],
+      ["Frete e entrega", r.freteUnit]
+    ];
+    var html = "";
+    linhas.forEach(function(l){
+      html += '<tr><td class="txt">' + l[0] + '</td><td class="calc">' + rs(l[1]) + '</td></tr>';
+    });
+    el("tbComposicao").innerHTML = html;
+    el("compTotal").textContent = rs(r.custoTotal);
+
+    el("notaRateio").textContent = r.semProdMensal
+      ? "Rateio das contas do mês não aplicado: informe os blocos vendidos por mês na aba Custos fixos."
+      : "Rateio: " + rs(r.fixosMes) + " por mês (inclui " + rs(r.deprecMes) + " de depreciação) divididos por " + num(r.prodMensal,0) + " blocos.";
+
+    if(r.kgCimento > 0 && r.kgAgregado > 0){
+      el("notaTraco").textContent = "Traço: 1 de cimento para " + num(r.kgAgregado/r.kgCimento,1) +
+        " de agregado, em massa. Consumo de " + num(r.kgCimento/r.bons,2) + " kg de cimento por bloco bom.";
+    } else { el("notaTraco").textContent = ""; }
+
+    var av = el("avisoTopo"), msgs = [];
+    if(r.erro) msgs.push(r.erro);
+    if(r.faltando) msgs.push("Há " + r.faltando + " insumo(s) usados na fornada sem preço ou sem conversão de kg. O custo está incompleto.");
+    if(!temStorage) msgs.push("Este navegador não está gravando os dados. Baixe o arquivo e abra direto no aparelho.");
+    if(msgs.length){ av.textContent = msgs.join(" "); av.hidden = false; } else { av.hidden = true; }
+
+    var ne = el("notaEquipe");
+    if(ne) ne.textContent = "Custo por hora da equipe marcada para a fornada: " + rs(r.custoHoraEquipe) + ".";
+    var tf = el("totFixos");
+    if(tf){ var s=0; d.fixos.forEach(function(f){ s += n(f.valor); }); tf.textContent = rs(s); }
+  }
+
+  /* ---------- render calcular ---------- */
+  function renderCalc(){
+    var tb = el("tbCalc");
+    if(!d.insumos.length){
+      tb.innerHTML = '<tr><td colspan="3" class="vazio" style="padding:12px">Nenhum insumo cadastrado.</td></tr>';
+    } else {
+      var html = "";
+      d.insumos.forEach(function(i){
+        var q = d.atual.qtds[i.id];
+        var pend = insumoIncompleto(i) ? ' <span class="pend">preço pendente</span>' : "";
+        html += '<tr>' +
+          '<td class="txt">' + esc(i.nome) +
+            '<span class="med">' + esc(i.unDose || "medida") + " de " + num(n(i.kgDose),0) + " kg · " + rs(precoDose(i)) + pend + '</span></td>' +
+          '<td><input type="text" inputmode="decimal" class="num" data-qtd="' + i.id + '" value="' + (q==null?"":esc(q)) + '"></td>' +
+          '<td class="calc" data-custo="' + i.id + '">' + rs(n(q)*precoDose(i)) + '</td>' +
+        '</tr>';
+      });
+      tb.innerHTML = html;
+    }
+    el("inRendimento").value = d.atual.rendimento;
+    el("inHoras").value = d.atual.horas;
+    el("inPerda").value = d.atual.perda;
+    renderSelProduto();
+    renderResultado();
+  }
+
+  function renderSelProduto(){
+    var s = el("selProduto");
+    var html = '<option value="">Cálculo avulso</option>';
+    d.produtos.forEach(function(p){ html += '<option value="' + p.id + '">' + esc(p.nome) + '</option>'; });
+    s.innerHTML = html;
+    s.value = d.atual.produtoId || "";
+  }
+
+  /* ---------- render cadastros ---------- */
+  function campo(rot, tipo, set, id, valor, extra){
+    return '<div' + (extra||"") + '><label>' + rot + '</label>' +
+      '<input type="' + (tipo==="num"?"text":"text") + '"' + (tipo==="num"?' inputmode="decimal" class="num"':'') +
+      ' data-set="' + set + '" data-id="' + id + '" value="' + esc(valor) + '"></div>';
+  }
+
+  function renderInsumos(){
+    var c = el("lstInsumos");
+    if(!d.insumos.length){ c.innerHTML = '<p class="vazio">Nenhum insumo. Toque em adicionar.</p>'; return; }
+    var html = "";
+    d.insumos.forEach(function(i){
+      var falta = insumoIncompleto(i);
+      html += '<div class="ficha' + (falta?" falta":"") + '">' +
+        '<div class="ficha-topo"><input type="text" data-set="insumos.nome" data-id="' + i.id + '" value="' + esc(i.nome) + '" placeholder="Nome do insumo">' +
+          '<button class="del" data-del="insumos" data-id="' + i.id + '" aria-label="Excluir">×</button></div>' +
+        '<div class="grade">' +
+          campo("Como compra","txt","insumos.unCompra",i.id,i.unCompra) +
+          campo("Preço da compra R$","num","insumos.precoCompra",i.id,i.precoCompra) +
+          campo("Kg na compra","num","insumos.kgCompra",i.id,i.kgCompra) +
+          campo("Medida na fornada","txt","insumos.unDose",i.id,i.unDose) +
+          campo("Kg por medida","num","insumos.kgDose",i.id,i.kgDose) +
+        '</div>' +
+        '<div class="ficha-rodape" data-rod="' + i.id + '">' + rodapeInsumo(i) + '</div>' +
+      '</div>';
+    });
+    c.innerHTML = html;
+  }
+
+  function rodapeInsumo(i){
+    if(insumoIncompleto(i)) return '<span class="pend">Preencha preço da compra, kg na compra e kg por medida.</span>';
+    return '<span>Custo por kg: <b>' + rs(precoKg(i)) + '</b></span>' +
+           '<span>Cada ' + esc(i.unDose||"medida") + ': <b>' + rs(precoDose(i)) + '</b></span>';
+  }
+
+  function renderEquipe(){
+    var c = el("lstEquipe");
+    if(!d.equipe.length){ c.innerHTML = '<p class="vazio">Nenhuma pessoa cadastrada.</p>'; renderResultado(); return; }
+    var html = "";
+    d.equipe.forEach(function(p){
+      html += '<div class="ficha">' +
+        '<div class="ficha-topo"><input type="text" data-set="equipe.nome" data-id="' + p.id + '" value="' + esc(p.nome) + '" placeholder="Nome">' +
+          '<button class="del" data-del="equipe" data-id="' + p.id + '" aria-label="Excluir">×</button></div>' +
+        '<div class="grade">' +
+          campo("Salário R$","num","equipe.salario",p.id,p.salario) +
+          campo("Encargos %","num","equipe.encargos",p.id,p.encargos) +
+          campo("Horas por mês","num","equipe.horasMes",p.id,p.horasMes) +
+          '<div><label>Trabalha na fornada</label><span class="marcar"><input type="checkbox" data-chk="equipe" data-id="' + p.id + '"' + (p.fornada?" checked":"") + '> sim</span></div>' +
+        '</div>' +
+        '<div class="ficha-rodape" data-rod="' + p.id + '">' + rodapeEquipe(p) + '</div>' +
+      '</div>';
+    });
+    c.innerHTML = html;
+    renderResultado();
+  }
+
+  function rodapeEquipe(p){
+    var hm = n(p.horasMes);
+    var ch = hm > 0 ? (n(p.salario)*(1+n(p.encargos)/100))/hm : 0;
+    return '<span>Custo por hora: <b>' + rs(ch) + '</b></span><span>Custo mensal: <b>' + rs(n(p.salario)*(1+n(p.encargos)/100)) + '</b></span>';
+  }
+
+  function renderFixos(){
+    var tb = el("tbFixos");
+    if(!d.fixos.length){ tb.innerHTML = '<tr><td colspan="3" class="vazio" style="padding:12px">Nenhuma conta.</td></tr>'; }
+    else{
+      var html = "";
+      d.fixos.forEach(function(f){
+        html += '<tr>' +
+          '<td><input type="text" data-set="fixos.nome" data-id="' + f.id + '" value="' + esc(f.nome) + '"></td>' +
+          '<td><input type="text" inputmode="decimal" class="num" data-set="fixos.valor" data-id="' + f.id + '" value="' + esc(f.valor) + '"></td>' +
+          '<td class="meio"><button class="del" data-del="fixos" data-id="' + f.id + '" aria-label="Excluir">×</button></td>' +
+        '</tr>';
+      });
+      tb.innerHTML = html;
+    }
+    renderMaquinas();
+  }
+
+  function renderMaquinas(){
+    var c = el("lstMaquinas");
+    if(!d.maquinas.length){ c.innerHTML = '<p class="vazio">Nenhuma máquina cadastrada.</p>'; renderResultado(); return; }
+    var html = "";
+    d.maquinas.forEach(function(m){
+      html += '<div class="ficha">' +
+        '<div class="ficha-topo"><input type="text" data-set="maquinas.nome" data-id="' + m.id + '" value="' + esc(m.nome) + '" placeholder="Máquina">' +
+          '<button class="del" data-del="maquinas" data-id="' + m.id + '" aria-label="Excluir">×</button></div>' +
+        '<div class="grade">' +
+          campo("Valor de compra R$","num","maquinas.valor",m.id,m.valor) +
+          campo("Vida útil em meses","num","maquinas.vida",m.id,m.vida) +
+          campo("Potência kW","num","maquinas.kw",m.id,m.kw) +
+          '<div><label>Usa na fornada</label><span class="marcar"><input type="checkbox" data-chk="maquinas" data-id="' + m.id + '"' + (m.fornada?" checked":"") + '> sim</span></div>' +
+        '</div>' +
+        '<div class="ficha-rodape" data-rod="' + m.id + '">' + rodapeMaquina(m) + '</div>' +
+      '</div>';
+    });
+    c.innerHTML = html;
+    renderResultado();
+  }
+
+  function rodapeMaquina(m){
+    var vida = n(m.vida);
+    var dep = vida > 0 ? n(m.valor)/vida : 0;
+    return '<span>Depreciação por mês: <b>' + rs(dep) + '</b></span><span>Energia por hora: <b>' + rs(n(m.kw)*n(d.venda.kwh)) + '</b></span>';
+  }
+
+  function renderVenda(){
+    el("inImpostos").value = d.venda.impostos;
+    el("inCartao").value = d.venda.cartao;
+    el("inMargem").value = d.venda.margem;
+    el("inTipoMargem").value = d.venda.tipoMargem;
+    el("inFrete").value = d.venda.frete;
+    el("inProdMensal").value = d.venda.prodMensal;
+    el("inKwh").value = d.venda.kwh;
+    explicaMargem();
+  }
+
+  function explicaMargem(){
+    var m = num(n(d.venda.margem),1);
+    el("explicaMargem").textContent = d.venda.tipoMargem === "custo"
+      ? "Markup sobre o custo: " + m + "% em cima do que o bloco custou. Impostos e cartão entram depois."
+      : "Margem sobre a venda: " + m + "% do preço final sobra para você, depois de impostos e cartão.";
+  }
+
+  function renderLogo(){
+    var img = el("logoImg");
+    if(d.logo){ img.src = d.logo; img.style.display = "block"; el("marcaTexto").style.display = "none"; }
+    else { img.style.display = "none"; img.removeAttribute("src"); el("marcaTexto").style.display = ""; }
+  }
+
+  function renderTudo(){ renderInsumos(); renderEquipe(); renderFixos(); renderVenda(); renderLogo(); renderCalc(); }
+
+  /* ---------- eventos ---------- */
+  document.querySelector("nav").addEventListener("click", function(e){
+    var b = e.target.closest("button[data-aba]");
+    if(!b) return;
+    var abas = document.querySelectorAll("nav button[data-aba]");
+    for(var i=0;i<abas.length;i++) abas[i].setAttribute("aria-selected", abas[i]===b ? "true":"false");
+    var secs = document.querySelectorAll("main section");
+    for(var j=0;j<secs.length;j++) secs[j].hidden = true;
+    el("aba-" + b.getAttribute("data-aba")).hidden = false;
+    if(b.getAttribute("data-aba") === "calcular") renderCalc();
+    if(b.getAttribute("data-aba") === "insumos") renderInsumos();
+    window.scrollTo(0,0);
+  });
+
+  document.addEventListener("input", function(e){
+    var t = e.target;
+
+    if(t.hasAttribute && t.hasAttribute("data-set")){
+      var p = t.getAttribute("data-set").split(".");
+      var item = achar(d[p[0]], t.getAttribute("data-id"));
+      if(item){
+        item[p[1]] = t.value;
+        var rod = document.querySelector('[data-rod="' + item.id + '"]');
+        if(rod){
+          if(p[0]==="insumos") rod.innerHTML = rodapeInsumo(item);
+          if(p[0]==="equipe") rod.innerHTML = rodapeEquipe(item);
+          if(p[0]==="maquinas") rod.innerHTML = rodapeMaquina(item);
+        }
+        salvar(); renderResultado();
+      }
+      return;
+    }
+
+    if(t.hasAttribute && t.hasAttribute("data-qtd")){
+      var idq = t.getAttribute("data-qtd");
+      d.atual.qtds[idq] = t.value;
+      var ins = achar(d.insumos, idq);
+      var cel = document.querySelector('[data-custo="' + idq + '"]');
+      if(cel && ins) cel.textContent = rs(n(t.value) * precoDose(ins));
+      salvar(); renderResultado();
+      return;
+    }
+
+    switch(t.id){
+      case "inRendimento": d.atual.rendimento = t.value; salvar(); renderResultado(); break;
+      case "inHoras": d.atual.horas = t.value; salvar(); renderResultado(); break;
+      case "inPerda": d.atual.perda = t.value; salvar(); renderResultado(); break;
+      case "inImpostos": d.venda.impostos = t.value; salvar(); renderResultado(); break;
+      case "inCartao": d.venda.cartao = t.value; salvar(); renderResultado(); break;
+      case "inMargem": d.venda.margem = t.value; salvar(); explicaMargem(); renderResultado(); break;
+      case "inFrete": d.venda.frete = t.value; salvar(); renderResultado(); break;
+      case "inProdMensal": d.venda.prodMensal = t.value; salvar(); renderResultado(); break;
+      case "inKwh": d.venda.kwh = t.value; salvar(); renderResultado(); break;
+    }
+  });
+
+  document.addEventListener("change", function(e){
+    var t = e.target;
+    if(t.hasAttribute && t.hasAttribute("data-chk")){
+      var item = achar(d[t.getAttribute("data-chk")], t.getAttribute("data-id"));
+      if(item){ item.fornada = t.checked; salvar(); renderResultado(); }
+      return;
+    }
+    if(t.id === "inTipoMargem"){ d.venda.tipoMargem = t.value; salvar(); explicaMargem(); renderResultado(); return; }
+    if(t.id === "selProduto"){ carregarProduto(t.value); return; }
+  });
+
+  document.addEventListener("click", function(e){
+    var b = e.target.closest("button");
+    if(!b) return;
+
+    if(b.hasAttribute("data-add")){
+      var tipo = b.getAttribute("data-add");
+      if(tipo === "insumos") d.insumos.push({id:novoId(), nome:"", unCompra:"", precoCompra:"", kgCompra:"", unDose:"", kgDose:""});
+      if(tipo === "equipe") d.equipe.push({id:novoId(), nome:"", salario:"", encargos:"", horasMes:"", fornada:true});
+      if(tipo === "fixos") d.fixos.push({id:novoId(), nome:"", valor:""});
+      if(tipo === "maquinas") d.maquinas.push({id:novoId(), nome:"", valor:"", vida:"", kw:"", fornada:true});
+      salvar();
+      if(tipo === "insumos") renderInsumos();
+      if(tipo === "equipe") renderEquipe();
+      if(tipo === "fixos") renderFixos();
+      if(tipo === "maquinas") renderMaquinas();
+      renderResultado();
+      return;
+    }
+
+    if(b.hasAttribute("data-del")){
+      var lista = b.getAttribute("data-del"), id = b.getAttribute("data-id");
+      var alvo = achar(d[lista], id);
+      if(!window.confirm("Excluir " + ((alvo && alvo.nome) ? alvo.nome : "este item") + "?")) return;
+      d[lista] = d[lista].filter(function(x){ return x.id !== id; });
+      if(lista === "insumos") delete d.atual.qtds[id];
+      salvar();
+      if(lista === "insumos") renderInsumos();
+      if(lista === "equipe") renderEquipe();
+      if(lista === "fixos") renderFixos();
+      if(lista === "maquinas") renderMaquinas();
+      renderResultado();
+      return;
+    }
+
+    switch(b.id){
+      case "btnSalvarProduto": salvarProduto(); break;
+      case "btnExcluirProduto": excluirProduto(); break;
+      case "btnBackup": baixarBackup(); break;
+      case "btnRestaurar": el("fileBackup").click(); break;
+      case "btnRemoverLogo": d.logo=""; salvar(); renderLogo(); break;
+      case "btnZerar":
+        if(window.confirm("Apagar todos os cadastros e voltar ao padrão?")){
+          d = JSON.parse(JSON.stringify(padrao)); salvar(); renderTudo();
+        }
+        break;
+    }
+  });
+
+  /* ---------- produtos ---------- */
+  function salvarProduto(){
+    var p0 = achar(d.produtos, d.atual.produtoId);
+    var nome = window.prompt("Nome do produto:", p0 ? p0.nome : "Bloco 14x19x39");
+    if(nome === null) return;
+    nome = nome.trim();
+    if(!nome){ window.alert("Dê um nome ao produto."); return; }
+
+    var ex = null;
+    for(var i=0;i<d.produtos.length;i++){
+      if(String(d.produtos[i].nome).toLowerCase() === nome.toLowerCase()){ ex = d.produtos[i]; break; }
+    }
+    var dados = {qtds: JSON.parse(JSON.stringify(d.atual.qtds)), rendimento:d.atual.rendimento, horas:d.atual.horas, perda:d.atual.perda};
+    if(ex){
+      if(!window.confirm("Já existe produto com esse nome. Substituir?")) return;
+      ex.qtds = dados.qtds; ex.rendimento = dados.rendimento; ex.horas = dados.horas; ex.perda = dados.perda;
+      d.atual.produtoId = ex.id;
+    } else {
+      var novo = {id:novoId(), nome:nome, qtds:dados.qtds, rendimento:dados.rendimento, horas:dados.horas, perda:dados.perda};
+      d.produtos.push(novo);
+      d.atual.produtoId = novo.id;
+    }
+    salvar(); renderSelProduto(); window.alert("Produto salvo.");
+  }
+
+  function carregarProduto(id){
+    d.atual.produtoId = id;
+    if(id){
+      var p = achar(d.produtos, id);
+      if(p){
+        d.atual.qtds = JSON.parse(JSON.stringify(p.qtds));
+        d.atual.rendimento = p.rendimento;
+        d.atual.horas = p.horas;
+        d.atual.perda = (p.perda==null? 0 : p.perda);
+      }
+    }
+    salvar(); renderCalc();
+  }
+
+  function excluirProduto(){
+    var id = d.atual.produtoId;
+    if(!id){ window.alert("Selecione um produto salvo."); return; }
+    var p = achar(d.produtos, id);
+    if(!p) return;
+    if(!window.confirm("Excluir o produto " + p.nome + "?")) return;
+    d.produtos = d.produtos.filter(function(x){ return x.id !== id; });
+    d.atual.produtoId = "";
+    salvar(); renderCalc();
+  }
+
+  /* ---------- backup e logo ---------- */
+  function baixarBackup(){
+    try{
+      var blob = new Blob([JSON.stringify(d,null,2)], {type:"application/json"});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      var h = new Date();
+      a.href = url;
+      a.download = "backup-precificador-" + h.getFullYear() + "-" + String(h.getMonth()+1).padStart(2,"0") + "-" + String(h.getDate()).padStart(2,"0") + ".json";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+    }catch(e){ window.alert("Não foi possível gerar o backup neste navegador."); }
+  }
+
+  el("fileBackup").addEventListener("change", function(e){
+    var f = e.target.files && e.target.files[0];
+    if(!f) return;
+    var l = new FileReader();
+    l.onload = function(){
+      try{
+        var obj = JSON.parse(l.result);
+        if(!obj || typeof obj !== "object" || !("insumos" in obj)) throw new Error("formato");
+        if(!window.confirm("Restaurar este backup? Os dados atuais serão substituídos.")) return;
+        d = mesclar(JSON.parse(JSON.stringify(padrao)), obj);
+        salvar(); renderTudo(); window.alert("Backup restaurado.");
+      }catch(err){ window.alert("Arquivo inválido. Use um backup gerado por este app."); }
+    };
+    l.readAsText(f);
+    e.target.value = "";
+  });
+
+  el("fileLogo").addEventListener("change", function(e){
+    var f = e.target.files && e.target.files[0];
+    if(!f) return;
+    if(f.size > 400000){ window.alert("Imagem muito grande. Use um arquivo de até 400 KB."); e.target.value=""; return; }
+    var l = new FileReader();
+    l.onload = function(){ d.logo = l.result; salvar(); renderLogo(); };
+    l.readAsDataURL(f);
+    e.target.value = "";
+  });
+
+  carregar(); renderTudo(); salvar();
+})();
+</script>
+</body>
+</html>
